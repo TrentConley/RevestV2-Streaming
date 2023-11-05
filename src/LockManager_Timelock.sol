@@ -105,4 +105,9 @@ contract LockManager_Timelock is LockManager_Base {
         ILockManager.Lock memory lock = locks[lockId];
         return lock.creationTime;
     }
+
+    function getLockEndTime(bytes32 lockId) public view returns (uint96) {
+        ILockManager.Lock memory lock = locks[lockId];
+        return lock.timeLockExpiry;
+    }
 }

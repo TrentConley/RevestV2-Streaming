@@ -123,6 +123,7 @@ abstract contract Revest_base is IRevest, IControllerExtendable, ERC1155Holder, 
         console.log(totalSeconds);
         uint256[] memory quantities = new uint256[](1);
         quantities[0] = totalSeconds;
+        console.log("minting time lock with stream");
         return _mintTimeLock(endTime, recipients, quantities, depositAmount, fnftConfig, false, true);
         // return _mintTimeLock(endTime, recipients, totalSeconds, depositAmount, fnftConfig, false, true);
     }

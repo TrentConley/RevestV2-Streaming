@@ -984,14 +984,64 @@ contract Revest1155Tests is Test {
         console.log("trying to withdraw");
         uint256 bal = USDC.balanceOf(alice);
         console.log("Balance before, ", bal);
-        revest.withdrawFNFTSteam(fnftId);
+        revest.withdrawFNFTSteamQuadratic(fnftId);
         uint256 withdrawnAmount = USDC.balanceOf(alice) - bal;
         console.log("Withdrawn amount is", withdrawnAmount);
         console.log("withdrawed");
 
         // Check that Alice's balance has increased by the correct amount
         uint256 expectedIncrease = 1 weeks; // Replace with actual rate of increase
-        assertEq(withdrawnAmount, 10e5 * expectedIncrease, "Alice's balance did not increase correctly");
+        assertEq(withdrawnAmount, 10e5 * expectedIncrease / 2, "Alice's balance did not increase correctly");
+
+        // Check that the total supply of FNFTs has decreased by the correct amount
+        uint256 totalSupply = fnftHandler.totalSupply(fnftId);
+        // assertEq(totalSupply, initialSupply - expectedIncrease, "Total supply did not decrease correctly");
+    }
+
+    function testWithdrawFNFTSteamQuadraticOffset() public {
+        uint256 supply = 10e6;
+        uint256 depositAmount = 10e5;
+        uint256 preBal = USDC.balanceOf(alice);
+
+        address[] memory recipients = new address[](1);
+        recipients[0] = alice;
+
+        uint256[] memory supplies = new uint[](1);
+        supplies[0] = supply;
+
+        IController.FNFTConfig memory config = IController.FNFTConfig({
+            handler: address(fnftHandler),
+            asset: address(USDC),
+            lockManager: address(lockManager_timelock),
+            nonce: 0,
+            fnftId: 0,
+            maturityExtension: false
+        });
+
+        config.handler = address(fnftHandler);
+
+        uint256 currentTime = block.timestamp;
+        uint256 endTime = block.timestamp + 40 days;
+
+        (uint256 fnftId, bytes32 lockId) = revest.mintTimeStream(endTime, recipients, depositAmount, config);
+
+        // Let's fast forward time by 1 week
+        skip(4 days);
+
+        // Now Alice calls the withdrawFNFTSteam function
+        console.log(config.handler);
+        console.log("trying to withdraw");
+        uint256 bal = USDC.balanceOf(alice);
+        console.log("Balance before, ", bal);
+        revest.withdrawFNFTSteamQuadratic(fnftId);
+        uint256 withdrawnAmount = USDC.balanceOf(alice) - bal;
+        console.log("Withdrawn amount is", withdrawnAmount);
+        console.log("withdrawed");
+
+        // Check that Alice's balance has increased by the correct amount
+        uint256 expectedIncrease = 4 days; // Replace with actual rate of increase
+        uint256 multiplier = 10;
+        assertEq(withdrawnAmount, 10e5 * expectedIncrease / multiplier, "Alice's balance did not increase correctly");
 
         // Check that the total supply of FNFTs has decreased by the correct amount
         uint256 totalSupply = fnftHandler.totalSupply(fnftId);

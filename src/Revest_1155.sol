@@ -62,7 +62,7 @@ contract Revest_1155 is Revest_base {
         //You can safely cast this since getNextId is an incrementing variable
         fnftId = fnftHandler.getNextId();
         withdrawnAmount[fnftId] = 0;
-        lastWithdrawnTime = ILockManager(fnft.lockManager).getLockCreationTime(lockId);
+        
 
         // Get or create lock based on time, assign lock to ID
         {
@@ -75,6 +75,9 @@ contract Revest_1155 is Revest_base {
         //Stack Too Deep Fixer
         doMint(MintParameters(endTime, recipients, quantities, depositAmount, fnftId, fnftConfig, usePermit2));
 
+        IRevest.FNFTConfig memory fnft = fnfts[fnftId];
+        lastWithdrawnTime[fnftId] = ILockManager(fnft.lockManager).getLockCreationTime(lockId);
+        
         emit FNFTTimeLockMinted(fnftConfig.asset, msg.sender, fnftId, endTime, quantities, fnftConfig);
     }
 
@@ -159,6 +162,47 @@ contract Revest_1155 is Revest_base {
         console.log("withdrawing this quantity:", quantity);
         withdrawToken(fnftId, quantity, msg.sender);
         withdrawnAmount[fnftId] += quantity;
+        lastWithdrawnTime[fnftId] = block.timestamp;
+        console.log(withdrawnAmount[fnftId]);
+        emit FNFTWithdrawn(msg.sender, fnftId, quantity);
+    }
+
+     function withdrawFNFTSteamQuadratic(uint fnftId) external nonReentrant {
+        // 
+        console.log("Withdrawing");
+        console.log(withdrawnAmount[fnftId]);
+        console.log(fnftId);
+        IRevest.FNFTConfig memory fnft = fnfts[fnftId];
+        console.log("got fnfts");
+        // Check if FNFTs exist in the first place for the given ID
+
+        require(fnftHandler.totalSupply(fnftId) != 0, "E003");
+        console.log("Made it past first require");
+        fnftHandler.balanceOf(msg.sender, fnftId);
+        bytes32 lockId = fnftIdToLockId(fnftId);
+        uint96 creationTime = ILockManager(fnft.lockManager).getLockCreationTime(lockId);
+        uint96 endTime = ILockManager(fnft.lockManager).getLockEndTime(lockId);
+        uint256 totalTime = endTime - creationTime;
+        uint256 secondsPassed = block.timestamp - creationTime;
+        uint256 quantity = ((secondsPassed * secondsPassed) / (totalTime)) - withdrawnAmount[fnftId];
+
+        // Burn the FNFTs being exchanged
+        // TODO determine how much you want to burn, because user jus does based off how many tokens to burn. 
+        console.log("burning");
+        fnftHandler.burn(msg.sender, fnftId, quantity);
+        // determine amound of seconds that has passed between when it was created and now
+        // determine how much i am allowed to withdraw
+        // determine how many fnfts i am trying to withdraw based on the value that I am passing in
+        console.log("checking streamMapping");
+        console.log(isStreamMapping[fnftId]);
+        // if(!isStreamMapping[fnftId]) {
+        //     ILockManager(fnft.lockManager).unlockFNFT(lockId, fnftId);
+        // }
+        console.log("Attempting to withdraw");
+        console.log("withdrawing this quantity:", quantity);
+        withdrawToken(fnftId, quantity, msg.sender);
+        withdrawnAmount[fnftId] += quantity;
+        lastWithdrawnTime[fnftId] = block.timestamp;
         console.log(withdrawnAmount[fnftId]);
         emit FNFTWithdrawn(msg.sender, fnftId, quantity);
     }

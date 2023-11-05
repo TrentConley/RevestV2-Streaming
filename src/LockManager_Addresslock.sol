@@ -40,4 +40,8 @@ contract LockManager_Addresslock is LockManager_Base {
     function getLockCreationTime(bytes32 lockId) public view returns (uint96) {
         return locks[lockId].creationTime;
     }
+
+    function getLockEndTime(bytes32 lockId) public view returns (uint96) {
+        return 0;
+    }
 }
