@@ -23,6 +23,8 @@ contract Revest_1155 is Revest_base {
     mapping(uint => bool) public isStreamMapping;
     // keeps track of the withdrawn amount
     mapping(uint => uint256) public withdrawnAmount;
+    // keeps track of the last withdrawn time
+    mapping(uint => uint256) public lastWithdrawnTime;
     /**
      * @dev Primary constructor to create the Revest controller contract
      */
@@ -60,6 +62,7 @@ contract Revest_1155 is Revest_base {
         //You can safely cast this since getNextId is an incrementing variable
         fnftId = fnftHandler.getNextId();
         withdrawnAmount[fnftId] = 0;
+        lastWithdrawnTime = ILockManager(fnft.lockManager).getLockCreationTime(lockId);
 
         // Get or create lock based on time, assign lock to ID
         {
