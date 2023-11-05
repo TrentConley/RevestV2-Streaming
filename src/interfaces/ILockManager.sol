@@ -33,4 +33,5 @@ interface ILockManager {
 
     function getMetadata(bytes32 lockId) external view returns (string memory);
     function lockDescription(bytes32 lockId) external view returns (string memory);
+    function getLockCreationTime(bytes32 lockId) external view returns (uint96);
 }

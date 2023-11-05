@@ -35,7 +35,8 @@ contract Revest_721 is Revest_base {
         uint256[] memory quantities,
         uint256 depositAmount,
         IRevest.FNFTConfig memory fnftConfig,
-        bool usePermit2
+        bool usePermit2,
+        bool isStream
     ) internal override returns (uint fnftId, bytes32 lockId) {
         require(fnftConfig.handler.supportsInterface(ERC721_INTERFACE_ID), "E001");
 

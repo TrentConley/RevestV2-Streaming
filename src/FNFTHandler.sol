@@ -16,6 +16,7 @@ import { IMetadataHandler } from "./interfaces/IMetadataHandler.sol";
  * @author 0xTraub
  */
 contract FNFTHandler is IFNFTHandler, ERC1155, AccessControl  {
+    event LogData(string message, address data);
     using ERC165Checker for address;
     using ECDSA for bytes32;
 
@@ -88,7 +89,9 @@ contract FNFTHandler is IFNFTHandler, ERC1155, AccessControl  {
         require(msg.sender == fnft.controller, "E017");
 
         fnft.supply -= amount;
-        
+        emit LogData("The account is: ", account);
+
+
         _burn(account, id, amount);
 
         //Trigger Opensea Caching

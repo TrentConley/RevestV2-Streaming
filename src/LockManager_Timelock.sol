@@ -100,4 +100,9 @@ contract LockManager_Timelock is LockManager_Base {
         if (_hour >= 12) return string.concat(description, " PM</text>");
         else return string.concat(description, " AM</text>");
     }
+
+    function getLockCreationTime(bytes32 lockId) public view returns (uint96) {
+        ILockManager.Lock memory lock = locks[lockId];
+        return lock.creationTime;
+    }
 }

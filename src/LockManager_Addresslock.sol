@@ -25,7 +25,9 @@ contract LockManager_Addresslock is LockManager_Base {
         locks[lockId] = newLock;
     }
 
-    function extendLockMaturity(bytes32, bytes calldata) external {}
+    function extendLockMaturity(bytes32 lockId, bytes calldata extensionData) external override {
+        // Implement your logic here...
+    }
 
     /**
      * Return whether a lock of any type is mature. Use this for all locktypes.
@@ -33,5 +35,9 @@ contract LockManager_Addresslock is LockManager_Base {
     function getLockMaturity(bytes32, uint256) public view override returns (bool hasMatured) {
         //Note: Can be replaced with any logic you want I just have this for the tests
         return (block.timestamp % 2 == 0);
+    }
+
+    function getLockCreationTime(bytes32 lockId) public view returns (uint96) {
+        return locks[lockId].creationTime;
     }
 }

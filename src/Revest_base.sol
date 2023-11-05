@@ -23,6 +23,8 @@ import { IControllerExtendable } from "./interfaces/IControllerExtendable.sol";
 
 import { IWETH } from "./lib/IWETH.sol";
 
+import { console } from "lib/forge-std/src/console.sol";
+
 /**
  * @title Revest_base
  * @author 0xTraub
@@ -97,7 +99,7 @@ abstract contract Revest_base is IRevest, IControllerExtendable, ERC1155Holder, 
         //Length check means to use permit2 for allowance but allowance has already been granted
         require(_signature.length != 0, "E024");
         PERMIT2.permit(msg.sender, permits, _signature);
-        return _mintTimeLock(endTime, recipients, quantities, depositAmount, fnftConfig, true);
+        return _mintTimeLock(endTime, recipients, quantities, depositAmount, fnftConfig, true, false);
     }
 
     function mintTimeLock(
@@ -107,7 +109,22 @@ abstract contract Revest_base is IRevest, IControllerExtendable, ERC1155Holder, 
         uint256 depositAmount,
         IRevest.FNFTConfig memory fnftConfig
     ) external payable virtual nonReentrant returns (uint fnftId, bytes32 lockId) {
-        return _mintTimeLock(endTime, recipients, quantities, depositAmount, fnftConfig, false);
+        return _mintTimeLock(endTime, recipients, quantities, depositAmount, fnftConfig, false, false);
+    }
+
+    function mintTimeStream(
+        uint256 endTime,
+        address[] memory recipients,
+        uint256 depositAmount,
+        IRevest.FNFTConfig memory fnftConfig
+    ) external payable virtual nonReentrant returns (uint fnftId, bytes32 lockId) {
+        uint256 currentTime = block.timestamp;
+        uint256 totalSeconds = endTime - currentTime;
+        console.log(totalSeconds);
+        uint256[] memory quantities = new uint256[](1);
+        quantities[0] = totalSeconds;
+        return _mintTimeLock(endTime, recipients, quantities, depositAmount, fnftConfig, false, true);
+        // return _mintTimeLock(endTime, recipients, totalSeconds, depositAmount, fnftConfig, false, true);
     }
 
     function mintAddressLockWithPermit(
@@ -150,7 +167,8 @@ abstract contract Revest_base is IRevest, IControllerExtendable, ERC1155Holder, 
         uint256[] memory quantities,
         uint256 depositAmount,
         IRevest.FNFTConfig memory fnftConfig,
-        bool usePermit2
+        bool usePermit2,
+        bool isStream
     ) internal virtual returns (uint fnftId, bytes32 lockId);
 
     /*//////////////////////////////////////////////////////////////

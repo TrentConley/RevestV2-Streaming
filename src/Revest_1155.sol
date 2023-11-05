@@ -19,6 +19,9 @@ contract Revest_1155 is Revest_base {
 
     IFNFTHandler public immutable fnftHandler;
 
+// determines whether we are using special streaming setup
+    mapping(uint => bool) public isStreamMapping;
+
     /**
      * @dev Primary constructor to create the Revest controller contract
      */
@@ -45,8 +48,10 @@ contract Revest_1155 is Revest_base {
         uint256[] memory quantities,
         uint256 depositAmount,
         IRevest.FNFTConfig memory fnftConfig,
-        bool usePermit2
+        bool usePermit2,
+        bool isStream
     ) internal override returns (uint fnftId, bytes32 lockId) {
+        isStreamMapping[fnftId] = isStream;
         //You can safely cast this since getNextId is an incrementing variable
         fnftId = fnftHandler.getNextId();
 
@@ -97,11 +102,45 @@ contract Revest_1155 is Revest_base {
         require(fnftHandler.totalSupply(fnftId) != 0, "E003");
 
         // Burn the FNFTs being exchanged
+        // TODO determine how much you want to burn, because user jus does based off how many tokens to burn. 
         fnftHandler.burn(msg.sender, fnftId, quantity);
-
+        // 
+        
         bytes32 lockId = fnftIdToLockId(fnftId);
 
         ILockManager(fnft.lockManager).unlockFNFT(lockId, fnftId);
+
+
+        withdrawToken(fnftId, quantity, msg.sender);
+
+        emit FNFTWithdrawn(msg.sender, fnftId, quantity);
+    }
+
+
+    function withdrawFNFTSteam(uint fnftId) external nonReentrant {
+        // 
+        
+        IRevest.FNFTConfig memory fnft = fnfts[fnftId];
+
+        // Check if FNFTs exist in the first place for the given ID
+
+        require(fnftHandler.totalSupply(fnftId) != 0, "E003");
+        fnftHandler.balanceOf(msg.sender, fnftId);
+        bytes32 lockId = fnftIdToLockId(fnftId);
+        uint96 creationTime = ILockManager(fnft.lockManager).getLockCreationTime(lockId);
+        uint256 secondsPassed = block.timestamp - creationTime;
+        uint256 quantity = secondsPassed;
+
+        // Burn the FNFTs being exchanged
+        // TODO determine how much you want to burn, because user jus does based off how many tokens to burn. 
+        fnftHandler.burn(msg.sender, fnftId, quantity);
+        // determine amound of seconds that has passed between when it was created and now
+        // determine how much i am allowed to withdraw
+        // determine how many fnfts i am trying to withdraw based on the value that I am passing in
+        
+        if(!isStreamMapping[fnftId]) {
+            ILockManager(fnft.lockManager).unlockFNFT(lockId, fnftId);
+        }
 
         withdrawToken(fnftId, quantity, msg.sender);
 

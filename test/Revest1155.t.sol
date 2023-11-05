@@ -900,4 +900,46 @@ contract Revest1155Tests is Test {
         revest.changeMetadataHandler(address(0xdead));
         assertEq(address(revest.metadataHandler()), address(0xdead), "metadata handler not updated");
     }
+
+    function testWithdrawFNFTSteam() public {
+    // Assume that Alice has minted some FNFTs
+    address henry = address(15);
+
+    uint256 initialBalance = 10e6;
+
+    // Mint the FNFT using the streaming function
+    uint256 endTime = block.timestamp + 2 weeks;
+    uint256 depositAmount = 1e6; // Replace with actual deposit amount
+    IController.FNFTConfig memory fnftConfig = IController.FNFTConfig({
+        handler: address(revest.fnftHandler()),
+        asset: address(USDC),
+        fnftId: fnftId,
+        lockManager: address(lockManager_timelock),
+        nonce: 0,
+        maturityExtension: false
+    });
+    address[] memory recipients = new address[](1);
+    recipients[0] = henry;
+    deal(address(USDC), henry, 10e6);
+    USDC.approve(address(revest), type(uint).max);
+    uint256 henryBalance = USDC.balanceOf(henry);
+    console.log("Henry's USDC balance: %s", henryBalance);
+    (uint256 fnftId, bytes32 lockId) = revest.mintTimeStream(endTime, recipients, depositAmount, fnftConfig);
+
+    // Let's fast forward time by 1 week
+    skip(1 weeks);
+
+    // Now Alice calls the withdrawFNFTSteam function
+    console.log(fnftConfig.handler);
+    revest.withdrawFNFTSteam(fnftId);
+
+    // Check that Alice's balance has increased by the correct amount
+    uint256 finalBalance = USDC.balanceOf(henry);
+    uint256 expectedIncrease = 1 weeks; // Replace with actual rate of increase
+    assertEq(finalBalance, initialBalance + expectedIncrease, "Henry's balance did not increase correctly");
+
+    // Check that the total supply of FNFTs has decreased by the correct amount
+    uint256 totalSupply = fnftHandler.totalSupply(shit);
+    // assertEq(totalSupply, initialSupply - expectedIncrease, "Total supply did not decrease correctly");
+}
 }
