@@ -902,44 +902,52 @@ contract Revest1155Tests is Test {
     }
 
     function testWithdrawFNFTSteam() public {
-    // Assume that Alice has minted some FNFTs
-    address henry = address(15);
+        uint256 supply = 10e6;
+        uint256 depositAmount = 10e5;
+        uint256 preBal = USDC.balanceOf(alice);
 
-    uint256 initialBalance = 10e6;
+        address[] memory recipients = new address[](1);
+        recipients[0] = alice;
 
-    // Mint the FNFT using the streaming function
-    uint256 endTime = block.timestamp + 2 weeks;
-    uint256 depositAmount = 1e6; // Replace with actual deposit amount
-    IController.FNFTConfig memory fnftConfig = IController.FNFTConfig({
-        handler: address(revest.fnftHandler()),
-        asset: address(USDC),
-        fnftId: fnftId,
-        lockManager: address(lockManager_timelock),
-        nonce: 0,
-        maturityExtension: false
-    });
-    address[] memory recipients = new address[](1);
-    recipients[0] = henry;
-    deal(address(USDC), henry, 10e6);
-    USDC.approve(address(revest), type(uint).max);
-    uint256 henryBalance = USDC.balanceOf(henry);
-    console.log("Henry's USDC balance: %s", henryBalance);
-    (uint256 fnftId, bytes32 lockId) = revest.mintTimeStream(endTime, recipients, depositAmount, fnftConfig);
+        uint256[] memory supplies = new uint[](1);
+        supplies[0] = supply;
 
-    // Let's fast forward time by 1 week
-    skip(1 weeks);
+        IController.FNFTConfig memory config = IController.FNFTConfig({
+            handler: address(fnftHandler),
+            asset: address(USDC),
+            lockManager: address(lockManager_timelock),
+            nonce: 0,
+            fnftId: 0,
+            maturityExtension: false
+        });
 
-    // Now Alice calls the withdrawFNFTSteam function
-    console.log(fnftConfig.handler);
-    revest.withdrawFNFTSteam(fnftId);
+        config.handler = address(fnftHandler);
 
-    // Check that Alice's balance has increased by the correct amount
-    uint256 finalBalance = USDC.balanceOf(henry);
-    uint256 expectedIncrease = 1 weeks; // Replace with actual rate of increase
-    assertEq(finalBalance, initialBalance + expectedIncrease, "Henry's balance did not increase correctly");
+        uint256 currentTime = block.timestamp;
+        uint256 endTime = block.timestamp + 2 weeks;
 
-    // Check that the total supply of FNFTs has decreased by the correct amount
-    uint256 totalSupply = fnftHandler.totalSupply(shit);
-    // assertEq(totalSupply, initialSupply - expectedIncrease, "Total supply did not decrease correctly");
-}
+        (uint256 fnftId, bytes32 lockId) = revest.mintTimeStream(endTime, recipients, depositAmount, config);
+        
+        // Let's fast forward time by 1 week
+        skip(1 weeks);
+
+        // Now Alice calls the withdrawFNFTSteam function
+        console.log(config.handler);
+        console.log("trying to withdraw");
+        uint256 bal = USDC.balanceOf(alice);
+        console.log("Balance before, ", bal);
+        revest.withdrawFNFTSteam(fnftId);
+        uint256 withdrawnAmount = USDC.balanceOf(alice) - bal;
+        console.log("Withdrawn amount is", withdrawnAmount);
+        console.log("withdrawed");
+
+        // Check that Alice's balance has increased by the correct amount
+        uint256 finalBalance = USDC.balanceOf(alice);
+        uint256 expectedIncrease = 1 weeks; // Replace with actual rate of increase
+        assertEq(withdrawnAmount, 10e5 * 1 weeks, "Henry's balance did not increase correctly");
+
+        // Check that the total supply of FNFTs has decreased by the correct amount
+        uint256 totalSupply = fnftHandler.totalSupply(fnftId);
+        // assertEq(totalSupply, initialSupply - expectedIncrease, "Total supply did not decrease correctly");
+    }
 }
