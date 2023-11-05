@@ -932,14 +932,12 @@ contract Revest1155Tests is Test {
         skip(1 weeks);
 
         // Now Alice calls the withdrawFNFTSteam function
-        console.log(config.handler);
-        console.log("trying to withdraw");
+
         uint256 bal = USDC.balanceOf(alice);
-        console.log("Balance before, ", bal);
+
         revest.withdrawFNFTSteam(fnftId);
         uint256 withdrawnAmount = USDC.balanceOf(alice) - bal;
-        console.log("Withdrawn amount is", withdrawnAmount);
-        console.log("withdrawed");
+
 
         // Check that Alice's balance has increased by the correct amount
         uint256 expectedIncrease = 1 weeks; // Replace with actual rate of increase
@@ -980,14 +978,10 @@ contract Revest1155Tests is Test {
         skip(1 weeks);
 
         // Now Alice calls the withdrawFNFTSteam function
-        console.log(config.handler);
-        console.log("trying to withdraw");
         uint256 bal = USDC.balanceOf(alice);
-        console.log("Balance before, ", bal);
+
         revest.withdrawFNFTSteamQuadratic(fnftId);
         uint256 withdrawnAmount = USDC.balanceOf(alice) - bal;
-        console.log("Withdrawn amount is", withdrawnAmount);
-        console.log("withdrawed");
 
         // Check that Alice's balance has increased by the correct amount
         uint256 expectedIncrease = 1 weeks; // Replace with actual rate of increase
@@ -1029,14 +1023,11 @@ contract Revest1155Tests is Test {
         skip(4 days);
 
         // Now Alice calls the withdrawFNFTSteam function
-        console.log(config.handler);
-        console.log("trying to withdraw");
+
         uint256 bal = USDC.balanceOf(alice);
-        console.log("Balance before, ", bal);
+
         revest.withdrawFNFTSteamQuadratic(fnftId);
         uint256 withdrawnAmount = USDC.balanceOf(alice) - bal;
-        console.log("Withdrawn amount is", withdrawnAmount);
-        console.log("withdrawed");
 
         // Check that Alice's balance has increased by the correct amount
         uint256 expectedIncrease = 4 days; // Replace with actual rate of increase
